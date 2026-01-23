@@ -1,0 +1,133 @@
+.brand-title {
+    font-size: 32px;
+    font-weight: bold;
+    color: #4CAF50;
+    text-align: center;
+    margin-top: 20px;
+    font-family: 'Comic Sans MS', 'Cursive', sans-serif; /* Cute font */
+}
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f4f9; /* Light grey background */
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* This centers everything horizontally */
+}
+
+/* Navigation Bar */
+.navbar {
+    width: 100%;
+    background-color: #333;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.navbar a {
+    float: left;
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 20px;
+    text-decoration: none;
+}
+
+.navbar a:hover {
+    background-color: #575757;
+}
+
+/* Centered White Box (Container) */
+.container {
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Soft shadow */
+    width: 80%;
+    max-width: 800px;
+    text-align: center;
+}
+
+/* Small Centered Box (For Login/Register) */
+.login-box {
+    background-color: white;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    width: 300px;
+    margin-top: 50px;
+    text-align: center;
+}
+
+/* Form Inputs */
+input[type=text], input[type=password], input[type=number] {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+/* Buttons */
+button {
+    width: 100%;
+    background-color: #4CAF50; /* Green */
+    color: white;
+    padding: 14px 20px;
+    margin: 8px 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+/* Animal Cards */
+.animal-card {
+    border: 1px solid #e1e1e1;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px;
+    display: inline-block;
+    width: 200px;
+    background: #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    vertical-align: top;
+}
+/* Add this to the bottom of style.css */
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: #4CAF50;
+    color: white;
+}
+
+tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Style the file upload button */
+input[type=file] {
+    padding: 10px;
+    background: #f9f9f9;
+    border: 1px dashed #ccc;
+    width: 100%;
+    box-sizing: border-box;
+}
+
