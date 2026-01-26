@@ -17,20 +17,22 @@ $animals = $stmt->fetchAll();
     <div class="brand-title">🐱 MewMew Adoption Center 🐶</div>
 
     <div class="navbar">
-        <a href="index.php">Home</a>
+    <a href="index.php">Home</a>
+    
+    <?php if (isset($_SESSION['user_id'])) { ?>
         
-        <?php if (isset($_SESSION['user_id'])) { ?>
-            
-            <?php if (isset($_SESSION['role']) && $_SESSION['role'] == 'admin') { ?>
-                <a href="admin.php" style="background-color: #e67e22;"><b>⚙️ Admin Dashboard</b></a>
-            <?php } ?>
+        <a href="my_adoptions.php">My Pets</a>
 
-            <a href="logout.php" style="float:right">Logout (<?= $_SESSION['username'] ?>)</a>
-            
-        <?php } else { ?>
-            <a href="login.php" style="float:right">Login</a>
+        <?php if (isset($_SESSION['role']) && $_SESSION['role'] == 'admin') { ?>
+            <a href="admin.php" style="background-color: #e67e22;">⚙️ Admin Dashboard</a>
         <?php } ?>
-    </div>
+
+        <a href="logout.php" style="float:right">Logout (<?= $_SESSION['username'] ?>)</a>
+        
+    <?php } else { ?>
+        <a href="login.php" style="float:right">Login</a>
+    <?php } ?>
+</div>
 
     <div class="container">
         <h1>Find Your New Best Friend</h1>
