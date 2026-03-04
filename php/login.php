@@ -30,11 +30,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <html>
 <head>
     <title>Login</title>
-    <link rel="stylesheet" href="style.css"> </head>
+    <link rel="stylesheet" href="style.css">
+</head>
 <body>
     <div class="login-box">
         <h2>Login</h2>
-        <?php if(isset($error)) echo "<p style='color:red'>$error</p>"; ?>
+        <?php if(isset($error)) echo "<p style='color:red;'>" . htmlspecialchars($error) . "</p>"; ?>
         <form method="POST">
             <input type="text" name="username" placeholder="Username" required>
             <input type="password" name="password" placeholder="Password" required>
@@ -43,5 +44,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <br>
         <a href="register.php">Create an account</a>
     </div>
+
+    <script>
+        // Prevent going back to cached pages after logout
+        window.history.forward();
+        function noBack() {
+            window.history.forward();
+        }
+        
+        // Disable browser back button
+        window.onload = noBack;
+        window.onpageshow = function(evt) {
+            if (evt.persisted) {
+                noBack();
+            }
+        }
+        
+        // Prevent cache
+        if (window.history.replaceState) {
+            window.history.replaceState(null, null, window.location.href);
+        }
+
+        // Clear browser cache on page load
+        if ('caches' in window) {
+            caches.keys().then(function(cacheNames) {
+                return Promise.all(
+                    cacheNames.map(function(cacheName) {
+                        return caches.delete(cacheName);
+                    })
+                );
+            });
+        }
+    </script>
 </body>
 </html>

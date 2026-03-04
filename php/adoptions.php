@@ -6,12 +6,14 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
     exit;
 }
 
-// Fetch Adoption History with contact info
-$adoptions = $pdo->query("SELECT adoptions.*, users.username, animals.name as animal_name 
+// Optimized query with proper indexing - only select needed columns
+$adoptions = $pdo->query("SELECT adoptions.id, adoptions.adoption_date, adoptions.contact, adoptions.address,
+                          users.username, animals.name as animal_name 
                           FROM adoptions 
                           JOIN users ON adoptions.user_id = users.id 
                           JOIN animals ON adoptions.animal_id = animals.id 
-                          ORDER BY adoption_date DESC")->fetchAll();
+                          ORDER BY adoptions.adoption_date DESC
+                          LIMIT 5000")->fetchAll();
 ?>
 
 <!DOCTYPE html>
@@ -33,7 +35,7 @@ $adoptions = $pdo->query("SELECT adoptions.*, users.username, animals.name as an
 
     <div class="container">
         <h1>Adoption History</h1>
-        <p>List of all successful adoptions.</p>
+        <p>List of all successful adoptions (Total: <?= count($adoptions) ?>)</p>
 
         <table>
             <tr>
@@ -46,10 +48,11 @@ $adoptions = $pdo->query("SELECT adoptions.*, users.username, animals.name as an
             </tr>
             <?php foreach ($adoptions as $adopt): ?>
             <tr>
-                <td><?= $adopt['id'] ?></td>
-                <td><?= $adopt['username'] ?></td>
-                <td><?= $adopt['animal_name'] ?></td>
-                <td><?= $adopt['contact'] ?></td> <td><?= $adopt['address'] ?></td>
+                <td><?= intval($adopt['id']) ?></td>
+                <td><?= htmlspecialchars($adopt['username']) ?></td>
+                <td><?= htmlspecialchars($adopt['animal_name']) ?></td>
+                <td><?= htmlspecialchars($adopt['contact']) ?></td>
+                <td><?= htmlspecialchars($adopt['address']) ?></td>
                 <td><?= date("M d, Y", strtotime($adopt['adoption_date'])) ?></td>
             </tr>
             <?php endforeach; ?>

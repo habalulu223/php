@@ -8,11 +8,12 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Fetch user's adoptions
+// Optimized query: only select needed columns, use direct LIMIT
 $my_adoptions = $pdo->prepare("SELECT adoptions.id as adoption_id, animals.name, animals.image, animals.id as animal_id 
                                FROM adoptions 
                                JOIN animals ON adoptions.animal_id = animals.id 
-                               WHERE adoptions.user_id = ?");
+                               WHERE adoptions.user_id = ?
+                               LIMIT 100");
 $my_adoptions->execute([$user_id]);
 $pets = $my_adoptions->fetchAll();
 ?>
@@ -84,15 +85,16 @@ $pets = $my_adoptions->fetchAll();
     </div>
 
     <div class="container">
-        <h1>My Adopted Pets</h1>
+        <h1>My Adopted Pets (<?= count($pets) ?>)</h1>
 
         <?php if (count($pets) > 0): ?>
             <?php foreach ($pets as $pet): ?>
             <div class="animal-card">
-                <img src="uploads/<?= $pet['image'] ?>" style="width:100%; height:150px; object-fit:cover; border-radius:5px;">
-                <h3><?= $pet['name'] ?></h3>
+                <img src="uploads/<?= htmlspecialchars($pet['image']) ?>" alt="<?= htmlspecialchars($pet['name']) ?>" 
+                     style="width:100%; height:150px; object-fit:cover; border-radius:5px;" loading="lazy">
+                <h3><?= htmlspecialchars($pet['name']) ?></h3>
                 
-                <button onclick="showSadPopup(<?= $pet['adoption_id'] ?>, <?= $pet['animal_id'] ?>)" style="background-color: #f44336;">
+                <button onclick="showSadPopup(<?= intval($pet['adoption_id']) ?>, <?= intval($pet['animal_id']) ?>)" style="background-color: #f44336;">
                     Cancel Adoption
                 </button>
             </div>
@@ -106,7 +108,7 @@ $pets = $my_adoptions->fetchAll();
         <div class="modal-content">
             <h2 style="color: #d32f2f;">Wait! Are you sure?</h2>
             
-            <img src="uploads/sad_dog.gif" alt="Sad Dog" class="sad-puppy-img">
+            <img src="uploads/sad_dog.gif" alt="Sad Dog" class="sad-puppy-img" loading="lazy">
             
             <p style="font-size: 18px;">Don't give up on me... I'll be sad! 😢</p>
             

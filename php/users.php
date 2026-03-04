@@ -8,9 +8,9 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
 
 // Handle Role Updates
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $target_user_id = $_POST['user_id'];
-    $new_role = $_POST['new_role'];
-    $admin_id = $_SESSION['user_id']; // The ID of YOU (the admin currently logged in)
+    $target_user_id = intval($_POST['user_id']);
+    $new_role = ($_POST['new_role'] === 'admin') ? 'admin' : 'client';
+    $admin_id = $_SESSION['user_id'];
     
     // 1. Update the User's Role
     $stmt = $pdo->prepare("UPDATE users SET role = ? WHERE id = ?");
@@ -21,10 +21,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     $logStmt = $pdo->prepare("INSERT INTO admin_logs (admin_id, target_user_id, action) VALUES (?, ?, ?)");
     $logStmt->execute([$admin_id, $target_user_id, $action]);
+    
+    // Clear cache
+    cache_clear('all_users_list');
 }
 
-// Fetch all users
-$users = $pdo->query("SELECT * FROM users ORDER BY id ASC")->fetchAll();
+// Optimized query: only select needed columns
+$cache_key = 'all_users_list';
+$users = cache_get($cache_key);
+
+if ($users === false) {
+    $users = $pdo->query("SELECT id, username, role FROM users ORDER BY id ASC LIMIT 1000")->fetchAll();
+    cache_set($cache_key, $users);
+}
 ?>
 
 <!DOCTYPE html>
@@ -47,7 +56,7 @@ $users = $pdo->query("SELECT * FROM users ORDER BY id ASC")->fetchAll();
 
     <div class="container">
         <h1>Manage Users</h1>
-        <p>Control who has Admin access.</p>
+        <p>Control who has Admin access (Total: <?= count($users) ?>).</p>
 
         <table>
             <tr>
@@ -58,16 +67,16 @@ $users = $pdo->query("SELECT * FROM users ORDER BY id ASC")->fetchAll();
             </tr>
             <?php foreach ($users as $u): ?>
             <tr>
-                <td><?= $u['id'] ?></td>
-                <td><?= $u['username'] ?></td>
+                <td><?= intval($u['id']) ?></td>
+                <td><?= htmlspecialchars($u['username']) ?></td>
                 <td>
                     <strong style="color: <?= $u['role'] == 'admin' ? 'green' : 'grey' ?>;">
-                        <?= strtoupper($u['role']) ?>
+                        <?= strtoupper(htmlspecialchars($u['role'])) ?>
                     </strong>
                 </td>
                 <td>
-                    <form method="POST">
-                        <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
+                    <form method="POST" style="display:inline;">
+                        <input type="hidden" name="user_id" value="<?= intval($u['id']) ?>">
                         
                         <?php if ($u['role'] == 'client'): ?>
                             <input type="hidden" name="new_role" value="admin">

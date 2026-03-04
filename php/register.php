@@ -49,5 +49,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <a href="login.php">Already have an account? Login</a>
     </div>
 
+    <script>
+        // Prevent going back using browser back button
+        window.history.forward();
+        function noBack() {
+            window.history.forward();
+        }
+        
+        window.onload = noBack;
+        window.onpageshow = function(evt) {
+            if (evt.persisted) {
+                noBack();
+            }
+        }
+        
+        // Clear browser cache
+        if ('caches' in window) {
+            caches.keys().then(function(cacheNames) {
+                return Promise.all(
+                    cacheNames.map(function(cacheName) {
+                        return caches.delete(cacheName);
+                    })
+                );
+            });
+        }
+    </script>
+
 </body>
 </html>

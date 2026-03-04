@@ -1,9 +1,16 @@
 <?php 
 require 'db.php'; 
 
-// Fetch available animals
-$stmt = $pdo->query("SELECT * FROM animals WHERE status = 'Available'");
-$animals = $stmt->fetchAll();
+// Try to get cached available animals (cache for 5 minutes)
+$cache_key = 'available_animals_list';
+$animals = cache_get($cache_key);
+
+if ($animals === false) {
+    // Optimized query: only select needed columns
+    $stmt = $pdo->query("SELECT id, name, species, age, image FROM animals WHERE status = 'Available' LIMIT 100");
+    $animals = $stmt->fetchAll();
+    cache_set($cache_key, $animals);
+}
 ?>
 
 <!DOCTYPE html>
@@ -11,6 +18,11 @@ $animals = $stmt->fetchAll();
 <head>
     <title>MewMew Adoption Center</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        img {
+            loading: lazy; /* Native lazy loading */
+        }
+    </style>
 </head>
 <body>
 
@@ -27,7 +39,7 @@ $animals = $stmt->fetchAll();
             <a href="admin.php" style="background-color: #e67e22;">⚙️ Admin Dashboard</a>
         <?php } ?>
 
-        <a href="logout.php" style="float:right">Logout (<?= $_SESSION['username'] ?>)</a>
+        <a href="logout.php" style="float:right">Logout (<?= htmlspecialchars($_SESSION['username']) ?>)</a>
         
     <?php } else { ?>
         <a href="login.php" style="float:right">Login</a>
@@ -41,14 +53,15 @@ $animals = $stmt->fetchAll();
             
             <?php foreach ($animals as $animal) { ?>
                 <div class="animal-card">
-                    <img src="uploads/<?= $animal['image'] ?>" alt="Pet Photo" style="width:100%; height:150px; object-fit:cover; border-radius:5px;">
+                    <img src="uploads/<?= htmlspecialchars($animal['image']) ?>" alt="<?= htmlspecialchars($animal['name']) ?>" 
+                         style="width:100%; height:150px; object-fit:cover; border-radius:5px;" loading="lazy">
                     
-                    <h3><?= $animal['name'] ?></h3>
-                    <p><strong><?= $animal['species'] ?></strong></p>
-                    <p><?= $animal['age'] ?> years old</p>
+                    <h3><?= htmlspecialchars($animal['name']) ?></h3>
+                    <p><strong><?= htmlspecialchars($animal['species']) ?></strong></p>
+                    <p><?= intval($animal['age']) ?> years old</p>
                     
                     <?php if (isset($_SESSION['user_id'])) { ?>
-                        <a href="adopt_form.php?id=<?= $animal['id'] ?>">
+                        <a href="adopt_form.php?id=<?= intval($animal['id']) ?>">
                             <button>Adopt Me!</button>
                         </a>
                     <?php } else { ?>

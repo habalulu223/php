@@ -9,14 +9,14 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
 
 // Handle Adding New Animal
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_animal'])) {
-    $name = $_POST['name'];
-    $species = $_POST['species'];
-    $age = $_POST['age'];
+    $name = trim($_POST['name']);
+    $species = trim($_POST['species']);
+    $age = intval($_POST['age']);
     $image = 'default.jpg'; 
 
     if (isset($_FILES['animal_photo']) && $_FILES['animal_photo']['error'] == 0) {
         $target_dir = "uploads/";
-        $filename = basename($_FILES["animal_photo"]["name"]);
+        $filename = time() . '_' . basename($_FILES["animal_photo"]["name"]);
         if (move_uploaded_file($_FILES["animal_photo"]["tmp_name"], $target_dir . $filename)) {
             $image = $filename;
         }
@@ -24,9 +24,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_animal'])) {
     
     $stmt = $pdo->prepare("INSERT INTO animals (name, species, age, image) VALUES (?, ?, ?, ?)");
     $stmt->execute([$name, $species, $age, $image]);
+    
+    // Clear cache when new animal is added
+    cache_clear('available_animals_list');
+    cache_clear('all_animals_list');
 }
 
-$all_animals = $pdo->query("SELECT * FROM animals ORDER BY id DESC")->fetchAll();
+// Optimized query: only select needed columns
+$cache_key = 'all_animals_list';
+$all_animals = cache_get($cache_key);
+
+if ($all_animals === false) {
+    $stmt = $pdo->query("SELECT id, name, species, image, status FROM animals ORDER BY id DESC LIMIT 1000");
+    $all_animals = $stmt->fetchAll();
+    cache_set($cache_key, $all_animals);
+}
 ?>
 
 <!DOCTYPE html>
@@ -34,6 +46,9 @@ $all_animals = $pdo->query("SELECT * FROM animals ORDER BY id DESC")->fetchAll()
 <head>
     <title>Admin Dashboard</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        img { loading: lazy; }
+    </style>
 </head>
 <body>
 
@@ -62,15 +77,15 @@ $all_animals = $pdo->query("SELECT * FROM animals ORDER BY id DESC")->fetchAll()
 
         <br><hr><br>
 
-        <h3>Current Animals</h3>
+        <h3>Current Animals (<?= count($all_animals) ?>)</h3>
         <table>
             <tr><th>Image</th><th>Name</th><th>Status</th><th>Action</th></tr>
             <?php foreach ($all_animals as $animal): ?>
             <tr>
-                <td><img src="uploads/<?= $animal['image'] ?>" width="50" height="50" style="object-fit:cover; border-radius:50%;"></td>
-                <td><?= $animal['name'] ?> (<?= $animal['species'] ?>)</td>
-                <td><span style="color: <?= $animal['status'] == 'Available' ? 'green' : 'red' ?>; font-weight:bold;"><?= $animal['status'] ?></span></td>
-                <td><a href="edit_animal.php?id=<?= $animal['id'] ?>"><button style="padding: 5px;">Edit</button></a></td>
+                <td><img src="uploads/<?= htmlspecialchars($animal['image']) ?>" width="50" height="50" style="object-fit:cover; border-radius:50%;" loading="lazy"></td>
+                <td><?= htmlspecialchars($animal['name']) ?> (<?= htmlspecialchars($animal['species']) ?>)</td>
+                <td><span style="color: <?= $animal['status'] == 'Available' ? 'green' : 'red' ?>; font-weight:bold;"><?= htmlspecialchars($animal['status']) ?></span></td>
+                <td><a href="edit_animal.php?id=<?= intval($animal['id']) ?>"><button style="padding: 5px;">Edit</button></a></td>
             </tr>
             <?php endforeach; ?>
         </table>
